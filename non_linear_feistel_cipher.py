@@ -6,12 +6,12 @@ def nl_roundf(current_key, current_text):
 
     final_text = ""
     msg_h = int(msg_l/2)    # Half of the length of the message
-
+    
     for j in range(msg_h):
         if (j<msg_h/2):
-            final_text += str((int(current_text[j]) & int(current_key[2(j+1)-2])) | (int(current_text[2(j+1)-2]) & int(current_key[2(j+1)])) | int(current_key[4(j+1)]))
+            final_text += str((int(current_text[j]) & int(current_key[2*(j+1)-2])) | (int(current_text[2*(j+1)-2]) & int(current_key[2*(j+1)-1])) | int(current_key[4*(j+1)-1]))
         else:
-            final_text += str((int(current_text[j]) & int(current_key[2(j+1)-2])) | (int(current_key[4(j+1)-(msg_l+1)-1]) & int(current_key[2(j+1)])) | int(current_text[2(j+1)-(msg_h+1)]))
+            final_text += str((int(current_text[j]) & int(current_key[2*(j+1)-2])) | (int(current_key[4*(j+1)-(msg_l)-2]) & int(current_key[2*(j+1)-1])) | int(current_text[2*(j+1)-(msg_h)-1]))
 
     return final_text
 
@@ -64,12 +64,12 @@ def decryption(x, key):
 
     return(x)
 
+
 def main():
-    text = "{0:b}".format(0x0000) #Insert String
-    key = "{0:16b}".format(0x369c) #Insert key
-    #key = "0011011010011100"
-    
-    print(key)
+    #text = "{0:b}".format(0x0000) #Insert String
+    #key = "{0:b}".format(0x369c) #Insert key
+    key = "0011011010011100"
+    text = "0000000000000000"
     
     x = encryption(text, key)
     print("ENCYPTION:\nPlaintext: " + str(hex(int(text, 2))) + ", Key: " + str(hex(int(key, 2))) + "\nCiphertext: " + str(hex(int(x, 2))))
