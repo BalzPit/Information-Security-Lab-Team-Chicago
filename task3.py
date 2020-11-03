@@ -1,4 +1,4 @@
-rounds = 5
+rounds = 17
 msg_l = 32
 
 def roundf(current_key, current_text):
@@ -9,9 +9,9 @@ def roundf(current_key, current_text):
 
     for j in range(msg_h):
         if (j<msg_h/2):
-            final_text += str(int(current_text[j]) ^ (int(current_key[4*(j+1)-4]) & (int(current_text[2*(j+1)-2]) | int(current_key[2*(j+1)-2]) | int(current_key[2*(j+1)-1]) | int(current_key[4*(j+1)-3]))))
+            final_text += str(int(current_text[j]) ^ int(current_key[4*(j+1)-4]))
         else:
-            final_text += str(int(current_text[j]) ^ (int(current_key[4*(j+1)-(msg_l+1)]) & (int(current_key[4*(j+1)-(msg_l+2)]) | int(current_key[2*(j+1)-2]) | int(current_key[2*(j+1)-1]) | int(current_text[2*(j+1)-(msg_h+1)]))))
+            final_text += str(int(current_text[j]) ^ int(current_key[4*(j+1)-(msg_l+1)]))
 
     return final_text
     
@@ -62,7 +62,7 @@ def decryption(x, key):
         x = feistel_interaction(x, keyGen(rounds + 1 - i, key), i, msg_l)
 
     return(x)
-
+    
 def main():
     #Calculating A
     text = "{0:032b}".format(0x00000001)   # Insert String
@@ -75,7 +75,9 @@ def main():
         print("ENCYPTION:\nPlaintext: " + str(hex(int(text, 2))) + ", + Key: " + str(hex(int(key, 2))) + " --> Ciphertext: " + str(hex(int(x, 2))))
         
         text =  "{0:032b}".format(int(text,2)*2) # Shift of the 1
-        f.write(x + "\n")
+        for j in x:
+            f.write(j +",")
+        f.write("\n")
     f.close()
 
     f = open("linear_key_output.txt","w")
@@ -87,7 +89,9 @@ def main():
         print("ENCYPTION:\nPlaintext: " + str(hex(int(text, 2))) + ", + Key: " + str(hex(int(key, 2))) + " --> Ciphertext: " + str(hex(int(x, 2))))
         
         key =  "{0:032b}".format(int(key,2)*2) #S hift of the 1
-        f.write(x + "\n")
+        for j in x:
+            f.write(j +",")
+        f.write("\n")
         
 
     f.close()
