@@ -64,13 +64,46 @@ def decryption(x, key):
     return(x)
 
 def main():
-    text = "{0:032b}".format(0x12345678)   # Insert String
-    key = "{0:032b}".format(0x87654321)    # Insert key
+    text = "{0:032b}".format(0x80000000)   # Insert String
+    key = "{0:032b}".format(0x0)    # Insert key
+    f = open("linear_text_output.txt","w")
 
-    x = encryption(text, key)
-    print("ENCYPTION:\nPlaintext: " + str(hex(int(text, 2))) + ", Key: " + str(hex(int(key, 2))) + "\nCiphertext: " + str(hex(int(x, 2))))
-    u = decryption(x, key)
-    print("DECRYPTION:\nCiphertext: " + str(hex(int(x , 2))) + ", Key: " + str(hex(int(key, 2))) + "\nPlaintext: " + str(hex(int(u, 2))))
+    # Generator of bases for text
+    for i in range(32):
+        x = encryption(text, key)
+        print("ENCYPTION:\nPlaintext: " + str(hex(int(text, 2))) + ", + Key: " + str(hex(int(key, 2))) + " --> Ciphertext: " + str(hex(int(x, 2))))
+        
+        text =  "{0:032b}".format(int(int(text,2)/2)) # Shift of the 1
+        for j in x:
+            f.write(j +",")
+        f.write("\n")
+    f.close()
 
+    f = open("linear_key_output.txt","w")
+    # Generator of bases for key
+    text = "{0:032b}".format(0x0)   # Insert String
+    key = "{0:032b}".format(0x80000000)
+    for i in range(32):
+        x = encryption(text, key)
+        print("ENCYPTION:\nPlaintext: " + str(hex(int(text, 2))) + ", + Key: " + str(hex(int(key, 2))) + " --> Ciphertext: " + str(hex(int(x, 2))))
+        
+        key =  "{0:032b}".format(int(int(key,2)/2)) #Shift of the 1
+        for j in x:
+            f.write(j +",")
+        f.write("\n")
+    f.close()
+    
+    f = open("linear_C.txt","w")
+    x = "{0:032b}".format(0x80000000)
+    key = "{0:032b}".format(0x0)
+    for i in range(32):
+        u = decryption(x, key)
+        x =  "{0:032b}".format(int(int(x,2)/2))
+        
+        for j in u:
+            f.write(j +",")
+        f.write("\n")
+    f.close()
+    
 if __name__ == '__main__':
     main()
