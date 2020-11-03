@@ -67,7 +67,7 @@ def decryption(x, key):
     
 def main():
 
-    f = open("output.txt","w")
+    f = open("output_hex.txt","w")
 
     for i in range(100000):
         u = rn.randint(0, 2**32 - 1)
@@ -77,11 +77,11 @@ def main():
 
         x = encryption(u, k)
 
-        u = str(int(u, 2))
-        k = str(int(k, 2))
-        x = str(int(x, 2))
+        u = str(hex(int(u, 2)))
+        k = str(hex(int(k, 2)))
+        x = str(hex(int(x, 2)))
 
-        f.write(u + "," + k + "," + x)
+        f.write(u[2:] + "," + k[2:] + "," + x[2:])
         f.write("\n")
 
     f.close()
