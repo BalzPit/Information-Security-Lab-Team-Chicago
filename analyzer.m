@@ -6,5 +6,5 @@ B = B(:,1:32)';
 text = hexToBinaryVector('80000000', 32)';
 key = hexToBinaryVector('80000000', 32)';
 
-result = (xor(A*key, B*text))'
-Hex = binaryVectorToHex(result)
+result = (xor(A*key, B*text))
+Hex = binaryVectorToHex(result')
