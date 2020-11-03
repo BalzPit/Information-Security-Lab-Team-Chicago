@@ -65,7 +65,7 @@ def decryption(x, key):
     
 def main():
     #Calculating A
-    text = "{0:032b}".format(0x00000001)   # Insert String
+    text = "{0:032b}".format(0x80000000)   # Insert String
     key = "{0:032b}".format(0x0)    # Insert key
     f = open("linear_text_output.txt","w")
 
@@ -74,7 +74,7 @@ def main():
         x = encryption(text, key)
         print("ENCYPTION:\nPlaintext: " + str(hex(int(text, 2))) + ", + Key: " + str(hex(int(key, 2))) + " --> Ciphertext: " + str(hex(int(x, 2))))
         
-        text =  "{0:032b}".format(int(text,2)*2) # Shift of the 1
+        text =  "{0:032b}".format(int(int(text,2)/2)) # Shift of the 1
         for j in x:
             f.write(j +",")
         f.write("\n")
@@ -83,17 +83,15 @@ def main():
     f = open("linear_key_output.txt","w")
     # Generator of bases for key
     text = "{0:032b}".format(0x0)   # Insert String
-    key = "{0:032b}".format(0x00000001)
+    key = "{0:032b}".format(0x80000000)
     for i in range(32):
         x = encryption(text, key)
         print("ENCYPTION:\nPlaintext: " + str(hex(int(text, 2))) + ", + Key: " + str(hex(int(key, 2))) + " --> Ciphertext: " + str(hex(int(x, 2))))
         
-        key =  "{0:032b}".format(int(key,2)*2) #S hift of the 1
+        key =  "{0:032b}".format(int(int(key,2)/2)) #Shift of the 1
         for j in x:
             f.write(j +",")
         f.write("\n")
-        
-
     f.close()
 
 if __name__ == '__main__':
