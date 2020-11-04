@@ -11,8 +11,8 @@ def find_key(x, u, A, B):
     return k
 
 def main():
-    plain1 = "{0:b}".format(0x08D17555)
-    cipher1 = "{0:b}".format(0x22C74406)
+    plain1 = "{0:032b}".format(0x08D17555)
+    cipher1 = "{0:032b}".format(0x22C74406)
     A = numpy.loadtxt('linear_key_output.txt', delimiter=",")
     B = numpy.loadtxt('linear_text_output.txt', delimiter=",")
 
