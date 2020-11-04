@@ -14,7 +14,10 @@ for ii=1:tablelen
     text = hexToBinaryVector(table(11,2),32)';
     cipher = hexToBinaryVector(table(ii,3),32)';
     
-    result = xor(A*key, B*text);
+    A_k = mod(A*key,2);
+    B_u = mod(B*text,2);
+    
+    result = xor(A_k, B_u);
     % sum(xor(result, cipher))
     
     if sum(xor(result, cipher)) == 0
@@ -24,3 +27,4 @@ for ii=1:tablelen
 end
 
 prob = sum(match)
+prob = prob/tablelen
