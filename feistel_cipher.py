@@ -65,7 +65,7 @@ def decryption(x, key):
 
 def main():
     text = "{0:032b}".format(0x08D17555)    # Insert String
-    key = "{0:032b}".format(0xEEEEEEEE)     # Insert key
+    key = "{0:032b}".format(0xF341C08F)     # Insert key
 
     x = encryption(text, key)
     print("ENCYPTION:\nPlaintext: " + str(hex(int(text, 2))) + ", Key: " + str(hex(int(key, 2))) + "\nCiphertext: " + str(hex(int(x, 2))))
