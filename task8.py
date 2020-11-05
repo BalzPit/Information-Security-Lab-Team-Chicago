@@ -83,15 +83,18 @@ def decryption(x, key):
     
     
     
-# Function to create the random key (as a binary string) 
-def rand_key(p): 
-    key = "" 
+# Function to create the random keys (as a binary string vector) 
+def rand_keys(num, r): 
+    keys = [] 
+    
+    #generate num randnom integers
+    random_nums = random.sample(range(r), num)
+    
     #generate random key string of length p
-    for i in range(p): 
-        temp = str(random.randint(0, 1)) 
-        key += temp 
+    for i in range(num): 
+        keys.append("{0:016b}".format(random_nums[i]))
           
-    return(key)
+    return(keys)
 
 
 
@@ -173,65 +176,116 @@ def search_matches(cipher, key1, plain, key2, N):
 
 
 def main():
-    N = 10000
+    #number of random guesses
+    N = 50000  # < 65536
 
     #initialise empty arrays
     key1_guess = [None]*N
     key2_guess = [None]*N
     cipher_guess = [None]*N
     plain_guess = [None]*N
-    plaintext = ["1010011110110100", "0010100110100000", "0001111001110110", "0111111110010100", "1111010110110001"]
-    ciphertext = ["1001100100010101", "1111010110001111", "0010011100110010", "1111101111010001", "1011100001100000"]
+    plaintext = []
+    ciphertext = []
+    final_keys1 = []
+    final_keys2 = []
+
+    #read plaintext and ciphertexts from file 
+    with open('KPApairsChicago_non_linear.hex','r') as file: 
+        w = 0
+        # reading each line     
+        for line in file:     
+            # reading each hex         
+            for word in line.split(): 
+                if w % 2 == 0 :
+                    plaintext.append("{0:016b}".format(int(word, 16)))
+                else:
+                    ciphertext.append("{0:016b}".format(int(word, 16)))
+                w += 1
     
-    # generate N random key1 guesses, 
+        
+    # generate N random key1 guesses with values between 0 and (2^16)-1, 
     # and compute corrresponding cipher guess for each
     #(use 1st plpaintext)
     print("generating key1s and encrypting plaintext...")
-    for i in range(N):
-        key1_guess[i] = rand_key(16)
+    
+    #list of random keys without duplicates
+    key1_guess = rand_keys(N, 65536)
+    for i in range(N): 
         cipher_guess[i] = encryption(plaintext[0], key1_guess[i])
         
     print("DONE!\n\nsorting by cipher...")
     
-    
-    #sort by cipher_guess value
+    #sort pairs by cipher_guess value
     quick_sort(cipher_guess, key1_guess, 0, N-1)    
     print("DONE!\n\ngenerating key2s and decrypting ciphertext...")
     
     
-    # generate N random key2 guesses, 
+    # generate N random key2 guesses with values between 0 and (2^16)-1, 
     # and compute corrresponding plaintext guess for each
-    #(use 1st cipher)
+    # (use 1st cipher)
+    key2_guess = rand_keys(N, 65536)
     for i in range(N):
-        key2_guess[i] = rand_key(16)
         plain_guess[i] = decryption(ciphertext[0], key2_guess[i])
-        #print(plain_guess[i], key2_guess[i])
     
     print("DONE!\n\nsorting by plaintext...")
      
-    
-    #sort by plain_guess value
+    #sort pairs by plain_guess value
     quick_sort(plain_guess, key2_guess, 0, N-1)    
     print("DONE!\n\nlooking for matches...")
+
     
     #look for matches between the two tables of ciphers and plaintexts
-    final_keys = search_matches(cipher_guess, key1_guess, plain_guess, key2_guess, N)
+    keys = search_matches(cipher_guess, key1_guess, plain_guess, key2_guess, N)
+    print("DONE!\n")
+    
+    quick_sort(keys[0], keys[1], 0, len(keys[0])-1) 
 
-    if len(final_keys[0]) != 0:
+    if len(keys[0]) != 0:
         #we found some matches
-        
-        print("DONE!\nORIGINAL CIPHERTEXT:", ciphertext[0], "\n")
-        
-        for i in range(len(final_keys)):
-            print("keys:", final_keys[0][i],final_keys[1][i])
+        print("found", len(keys[0]), "key pairs that produced matches")
+        for i in range(len(keys[0])):
+            #print("\nkeys:", hex(int(keys[0][i], 2)), hex(int(keys[1][i], 2)))
             
-            epic = encryption(encryption(plaintext[0], final_keys[0][i]), final_keys[1][i])
-            print("guessed ciphertext:",epic)
+            # let's see what happens when we use the keys we found 
+            # to encrypt and then decrypt all the known plain/ciphertext pairs.
+            # Only if keys succesfully encrypt/decrypt all input pairs 
+            # will we consider them a good enough guess!
+            good = 1
             
-            if(epic == ciphertext[0]):
-                print("CORRECT GUESS, THE ATTACK WAS SUCCESSFUL!!!\n")
+            for n in range(len(plaintext)):
+                # concatenated encryption
+                cipher_guess = encryption(encryption(plaintext[n], keys[0][i]), keys[1][i])
+            
+                if(cipher_guess == ciphertext[n]):
+                    # Correct Cipher!
+                    # concatenated decryption
+                    plain_guess = decryption(decryption(cipher_guess, keys[1][i]), keys[0][i])
+                    
+                    if(plain_guess != plaintext[n]):
+                        # keys are not good enough-> we don't want to add them to final_keys
+                        good = 0
+                        break
+                else:
+                    # keys are not good enough-> we don't want to add them to final_keys
+                    good = 0
+                    break
+            
+            # keys worked on all input plain/cipher pairs 
+            # without errors -> they are a very good guess!
+            if good:
+                final_keys1.append(keys[0][i])
+                final_keys2.append(keys[1][i])
+        
+        
+        if len(final_keys1) != 0:
+            print("\nFINAL KEYS")
+            for i in range(len(final_keys1)):
+                print(hex(int(final_keys1[i], 2)), hex(int(final_keys2[i], 2)))
+        else:
+            print("\nDidn't find a key pair that was able to work on all known (u,x) pairs. We don't have a good enough guess.")
+            
     else:
-        print("NO MATCHES!")
+        print("NO MATCHES FOUND!")
         
         
         
