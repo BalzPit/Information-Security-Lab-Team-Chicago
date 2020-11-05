@@ -1,6 +1,6 @@
 import random as rn
 
-rounds = 17
+rounds = 5
 msg_l = 32
 
 def roundf(current_key, current_text):

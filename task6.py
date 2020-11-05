@@ -9,9 +9,9 @@ def roundf(current_key, current_text):
 
     for j in range(msg_h):
         if (j<msg_h/2):
-            final_text += str(int(current_text[j]) ^ (int(current_key[4*(j+1)-4]) & (int(current_text[2*(j+1)-2]) | int(current_key[2*(j+1)-2]) | int(current_key[2*(j+1)-1]) | int(current_key[4*(j+1)-3]))))
+            final_text += str(int(current_text[j]) ^ (int(current_key[4*(j+1)-4]) & (int(current_key[2*(j+1)-2]))))
         else:
-            final_text += str(int(current_text[j]) ^ (int(current_key[4*(j+1)-(msg_l+1)]) & (int(current_key[4*(j+1)-(msg_l+2)]) | int(current_key[2*(j+1)-2]) | int(current_key[2*(j+1)-1]) | int(current_text[2*(j+1)-(msg_h+1)]))))
+            final_text += str(int(current_text[j]) ^ (int(current_key[4*(j+1)-(msg_l+1)]) & (int(current_key[2*(j+1)-2]))))
 
     return final_text
     
