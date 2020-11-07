@@ -1,88 +1,7 @@
+import feistel_cipher
 import random
 
-rounds = 13
-msg_l = 16
 
-
-
-
-def nl_roundf(current_key, current_text):
-    # Implementation of the non linear round function
-
-    final_text = ""
-    msg_h = int(msg_l/2)    # Half of the length of the message
-    
-    for j in range(msg_h):
-        if (j<msg_h/2):
-            final_text += str((int(current_text[j]) & int(current_key[2*(j+1)-2])) | (int(current_text[2*(j+1)-2]) & int(current_key[2*(j+1)-1])) | int(current_key[4*(j+1)-1]))
-        else:
-            final_text += str((int(current_text[j]) & int(current_key[2*(j+1)-2])) | (int(current_key[4*(j+1)-(msg_l)-2]) & int(current_key[2*(j+1)-1])) | int(current_text[2*(j+1)-(msg_h)-1]))
-
-    return final_text
-
-
-
-
-def keyGen(current_round, key):
-    # Given the index of the round (current_round)
-    # and the key, returns the subkey for that round
-    key_final = ""
-
-    for j in range(msg_l):
-        h = ((5*current_round + j) % msg_l)
-        key_final += key[h] 
-    
-    return key_final
-
-
-
-
-def feistel_interaction(u, k, round_index, message_length):
-    # Given the input message u and the
-    # key k, return a ciphertext x
-    # This counts as one round of the cipher
-
-    # Substitution
-    y = u[0:int(message_length/2)]   # Left half
-    z = u[int(message_length/2):int(message_length)]    # Right half
-    w = nl_roundf(k, y)
-
-    # Linear transformation
-    v = ""
-    for i in range(len(z)):
-        v += str(int(z[i]) ^ int(w[i]))
-
-    # Transposition
-    if round_index < rounds:
-        x = v + y
-    else:
-        x = y + v
-    
-    return x
-
-
-
-
-def encryption(text, key):
-    x = text
-    # Every cycle corresponds to an interaction of the algorithm
-    for i in range(1, rounds + 1):
-        x = feistel_interaction(x, keyGen(i, key), i, msg_l)
-
-    return x
-
-
-
-
-def decryption(x, key):
-    for i in range(1, rounds + 1):
-        x = feistel_interaction(x, keyGen(rounds + 1 - i, key), i, msg_l)
-
-    return(x)
-    
-    
-    
-    
 # Function to create the random keys (as a binary string vector) 
 def rand_keys(num, r): 
     keys = [] 
@@ -152,7 +71,6 @@ def partition(array, keys, start, end):
 # between the two tables of "intermediate" plaintexts and ciphertexts
 #
 # when a match is found the relative keys that produced it are stored to be later returned
-
 def search_matches(cipher, key1, plain, key2, N):
     final_keys = [[],[]]
     
@@ -174,10 +92,14 @@ def search_matches(cipher, key1, plain, key2, N):
 
 
 
-
+# task 8 requires to implement a “meet-in-the-middle” attack
 def main():
+    rounds = 13
+    msg_l = 16
+    non_linear_rf = 3 #flag for usage of the non linear round function
+    
     #number of random guesses
-    N = 50000  # < 65536
+    N = 50000  # < 2^16 = 65536
 
     #initialise empty arrays
     key1_guess = [None]*N
@@ -211,7 +133,7 @@ def main():
     #list of random keys without duplicates
     key1_guess = rand_keys(N, 65536)
     for i in range(N): 
-        cipher_guess[i] = encryption(plaintext[0], key1_guess[i])
+        cipher_guess[i] = feistel_cipher.encryption(plaintext[0], key1_guess[i], msg_l, rounds, non_linear_rf)
         
     print("DONE!\n\nsorting by cipher...")
     
@@ -225,7 +147,7 @@ def main():
     # (use 1st cipher)
     key2_guess = rand_keys(N, 65536)
     for i in range(N):
-        plain_guess[i] = decryption(ciphertext[0], key2_guess[i])
+        plain_guess[i] = feistel_cipher.decryption(ciphertext[0], key2_guess[i], msg_l, rounds, non_linear_rf)
     
     print("DONE!\n\nsorting by plaintext...")
      
@@ -238,11 +160,11 @@ def main():
     keys = search_matches(cipher_guess, key1_guess, plain_guess, key2_guess, N)
     print("DONE!\n")
     
-    quick_sort(keys[0], keys[1], 0, len(keys[0])-1) 
+    #quick_sort(keys[0], keys[1], 0, len(keys[0])-1) 
 
     if len(keys[0]) != 0:
         #we found some matches
-        print("found", len(keys[0]), "key pairs that produced matches")
+        print("found", len(keys[0]), "key pairs that produced matches, now performing quality check...")
         for i in range(len(keys[0])):
             #print("\nkeys:", hex(int(keys[0][i], 2)), hex(int(keys[1][i], 2)))
             
@@ -252,16 +174,16 @@ def main():
             # will we consider them a good enough guess!
             good = 1
             
-            for n in range(len(plaintext)):
+            for n in range(len(plaintext)-1):
                 # concatenated encryption
-                cipher_guess = encryption(encryption(plaintext[n], keys[0][i]), keys[1][i])
+                cipher_guess = feistel_cipher.encryption(feistel_cipher.encryption(plaintext[n+1], keys[0][i], msg_l, rounds, non_linear_rf), keys[1][i], msg_l, rounds, non_linear_rf)
             
-                if(cipher_guess == ciphertext[n]):
+                if(cipher_guess == ciphertext[n+1]):
                     # Correct Cipher!
                     # concatenated decryption
-                    plain_guess = decryption(decryption(cipher_guess, keys[1][i]), keys[0][i])
+                    plain_guess = feistel_cipher.decryption(feistel_cipher.decryption(cipher_guess, keys[1][i], msg_l , rounds, non_linear_rf), keys[0][i], msg_l , rounds, non_linear_rf)
                     
-                    if(plain_guess != plaintext[n]):
+                    if(plain_guess != plaintext[n+1]):
                         # keys are not good enough-> we don't want to add them to final_keys
                         good = 0
                         break
